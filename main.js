@@ -1,27 +1,48 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, shell } = require('electron');
 const path = require('path');
 
+// Keep a global reference so the window isn't GC'd
+let mainWindow = null;
+
 function createWindow() {
-  const win = new BrowserWindow({
-    width: 1400,
+  mainWindow = new BrowserWindow({
+    width: 1440,
     height: 900,
+    minWidth: 900,
+    minHeight: 600,
+    title: 'Bellwether Servicing Portal',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
     },
-    icon: path.join(__dirname, 'assets', 'icon.png') // optional icon
+    backgroundColor: '#07080b',
+    show: false, // show after 'ready-to-show' to avoid flash
   });
 
-  win.loadFile('rmwc_portfolio_portal (11).html');
+  mainWindow.loadFile('app.html');
 
-  // Open DevTools in development
-  // win.webContents.openDevTools();
+  // Show window once content is painted (no white flash)
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
+
+  // Open external links in the system browser, not in the app
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
 
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  app.quit();
 });
 
 app.on('activate', () => {

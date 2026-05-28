@@ -1,11 +1,14 @@
 {
-  "name": "bellwether-portal",
+  "name": "bellwether-servicing-portal",
   "version": "1.0.0",
-  "description": "Bellwether Servicing Portal",
+  "description": "Bellwether Servicing Portal — loan portfolio management desktop app",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:portable": "electron-builder --win portable",
+    "build:installer": "electron-builder --win nsis"
   },
   "devDependencies": {
     "electron": "^30.0.0",
@@ -14,41 +17,36 @@
   "build": {
     "appId": "com.bellwetheram.servicing-portal",
     "productName": "Bellwether Servicing Portal",
+    "copyright": "Copyright © 2025 Bellwether Asset Management, Inc.",
     "files": [
       "main.js",
-      "rmwc_portfolio_portal (11).html",
-      "node_modules/"
+      "app.html"
     ],
     "directories": {
-      "buildResources": "assets"
+      "buildResources": "assets",
+      "output": "dist"
     },
+    "asar": true,
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         },
         {
           "target": "portable",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ],
-      "certificateFile": null,
-      "certificatePassword": null,
-      "signingHashAlgorithms": [
-        "sha256"
-      ]
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Bellwether Servicing Portal"
+      "shortcutName": "Bellwether Servicing Portal",
+      "installerHeaderIcon": "assets/icon.ico"
     }
   }
 }

@@ -1,41 +1,58 @@
 @echo off
-REM Build script for Bellwether Servicing Portal
-REM Creates a portable and installer EXE
+:: ============================================================
+:: Bellwether Servicing Portal — Build Script
+:: Produces:
+::   dist/  →  NSIS installer (.exe) + Portable (.exe)
+:: ============================================================
 
 setlocal enabledelayedexpansion
 
-echo Building Bellwether Servicing Portal Installer...
+echo.
+echo  ===================================================
+echo   Bellwether Servicing Portal — Build
+echo  ===================================================
 echo.
 
-REM Set up environment
-set NODE_PATH=.\node_modules
-set PATH=.\node-v20.11.1-win-x64\bin;%PATH%
+:: Use bundled Node if system Node isn't on PATH
+where node >nul 2>&1
+if errorlevel 1 (
+    if exist "node-v20.11.1-win-x64\node.exe" (
+        echo  Using bundled Node.js...
+        set "PATH=%~dp0node-v20.11.1-win-x64;%PATH%"
+    ) else (
+        echo  ERROR: Node.js not found.
+        echo  Install from https://nodejs.org/ or keep node-v20.11.1-win-x64\ in this folder.
+        pause & exit /b 1
+    )
+)
 
-REM Create dist directory if it doesn't exist
-if not exist "dist" mkdir dist
-
-REM Copy Electron executable and dependencies
-echo Copying application files...
-xcopy /E /I /Y "node-v20.11.1-win-x64" "dist\Bellwether Servicing Portal\node"
-copy /Y "electron.exe" "dist\Bellwether Servicing Portal\"
-copy /Y "main.js" "dist\Bellwether Servicing Portal\"
-copy /Y "rmwc_portfolio_portal (11).html" "dist\Bellwether Servicing Portal\index.html"
-copy /Y "package.json" "dist\Bellwether Servicing Portal\"
-
-REM Copy resources
-xcopy /E /I /Y "locales" "dist\Bellwether Servicing Portal\locales"
-xcopy /E /I /Y "resources" "dist\Bellwether Servicing Portal\resources"
-
-REM Copy DLLs
-copy /Y "*.dll" "dist\Bellwether Servicing Portal\"
-copy /Y "*.pak" "dist\Bellwether Servicing Portal\"
-copy /Y "*.bin" "dist\Bellwether Servicing Portal\"
-copy /Y "*.dat" "dist\Bellwether Servicing Portal\"
-copy /Y "*.json" "dist\Bellwether Servicing Portal\"
-
-echo.
-echo Build complete!
-echo Portable app is ready in: dist\Bellwether Servicing Portal\
+for /f "tokens=*" %%v in ('node --version') do set NODE_VER=%%v
+echo  Node.js: %NODE_VER%
 echo.
 
+:: Install deps if electron isn't installed yet
+if not exist "node_modules\electron\package.json" (
+    echo  Installing dependencies (first run — may take a minute)...
+    call npm install
+    if errorlevel 1 (
+        echo  ERROR: npm install failed.
+        pause & exit /b 1
+    )
+    echo.
+)
+
+:: Build
+echo  Building installer + portable...
+call npm run build
+if errorlevel 1 (
+    echo.
+    echo  ERROR: Build failed. Check output above.
+    pause & exit /b 1
+)
+
+echo.
+echo  ===================================================
+echo   Build complete!  Output: dist\
+echo  ===================================================
+echo.
 pause
